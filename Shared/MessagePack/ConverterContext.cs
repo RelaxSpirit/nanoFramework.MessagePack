@@ -23,17 +23,17 @@ namespace nanoFramework.MessagePack
     public static class ConverterContext
     {
         private static readonly Type[] s_emptyTypes = new Type[0];
-        private static readonly NullConverter s_nullConverter = new();
-        private static readonly MapConverter s_mapConverter = new();
-        private static readonly ArrayConverter s_arrayConverter = new();
+        private static readonly NullConverter s_nullConverter = new NullConverter();
+        private static readonly MapConverter s_mapConverter = new MapConverter();
+        private static readonly ArrayConverter s_arrayConverter = new ArrayConverter();
 
 #if NANOFRAMEWORK_1_0
         private static readonly Hashtable s_mappingDictionary = new();
 #else
-        private static readonly ConcurrentDictionary<Type, MemberMapping[]> s_mappingDictionary = new();
+        private static readonly ConcurrentDictionary<Type, MemberMapping[]> s_mappingDictionary = new ConcurrentDictionary<Type, MemberMapping[]>();
 #endif
 
-        private static readonly Hashtable s_conversionTable = new()
+        private static readonly Hashtable s_conversionTable = new Hashtable()
         {
             { typeof(IDictionary).FullName!, s_mapConverter },
             { typeof(Hashtable).FullName!, s_mapConverter },
@@ -70,6 +70,23 @@ namespace nanoFramework.MessagePack
             { typeof(bool[]).FullName!, new SimpleArrayConverter(typeof(bool)) },
             { typeof(short[]).FullName!, new SimpleArrayConverter(typeof(short)) },
             { typeof(ushort[]).FullName!, new SimpleArrayConverter(typeof(ushort)) }
+#if !NANOFRAMEWORK_1_0
+            ,{ typeof(short?).FullName!, new NullableConverter<short>() },
+            { typeof(ushort?).FullName!, new NullableConverter<ushort>() },
+            { typeof(int?).FullName!, new NullableConverter<int>() },
+            { typeof(uint?).FullName!, new NullableConverter<uint>() },
+            { typeof(long?).FullName!, new NullableConverter<long>() },
+            { typeof(ulong?).FullName!, new NullableConverter<ulong>() },
+            { typeof(byte?).FullName!, new NullableConverter<byte>() },
+            { typeof(sbyte?).FullName!, new NullableConverter<sbyte>() },
+            { typeof(float?).FullName!, new NullableConverter<float>() },
+            { typeof(double?).FullName!, new NullableConverter<double>() },
+            { typeof(bool?).FullName!, new NullableConverter<bool>() },
+            { typeof(TimeSpan?).FullName!, new NullableConverter<TimeSpan>() },
+            { typeof(DateTime?).FullName!, new NullableConverter<DateTime>() },
+            { typeof(char?).FullName!, new NullableConverter<char>() },
+            { typeof(Guid?).FullName!, new NullableConverter<Guid>() },
+#endif
         };
 
         /// <summary>
@@ -140,7 +157,7 @@ namespace nanoFramework.MessagePack
         {
             var memberMappings = GetMemberMapping(targetType);
 
-            Hashtable result = new();
+            Hashtable result = new Hashtable();
 
             foreach (var memberMapping in memberMappings)
             {

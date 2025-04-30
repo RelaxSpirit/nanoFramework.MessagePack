@@ -24,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Converters\IntConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\LongConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\MapConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Converters\NullableConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\NullConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\SbyteConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\ShortConverter.cs" />

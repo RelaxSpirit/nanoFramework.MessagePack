@@ -111,6 +111,9 @@ namespace NFUnitTest
         public void ProcessCustomObjectTest()
         {
             var test = TestsHelper.GetTestClassObject();
+#if !NANOFRAMEWORK_1_0
+            test.SubTestObject.NullableDateTime = DateTime.UtcNow;
+#endif
             var resultBytes = MessagePackSerializer.Serialize(test);
             Debug.WriteLine($"Serialize byte size: {resultBytes.Length}");
             var testResult = (TestClass)MessagePackSerializer.Deserialize(typeof(TestClass), resultBytes)!;

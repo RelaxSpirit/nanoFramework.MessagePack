@@ -14,7 +14,7 @@ namespace nanoFramework.MessagePack.Extensions
 
         internal static string JoinToString(this DataTypes[] types, string separator)
         {
-            StringBuilder sb = new();
+            StringBuilder sb = new StringBuilder();
 
             foreach (var item in types)
             {

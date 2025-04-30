@@ -13,7 +13,12 @@ namespace UnitTestShared.TestData
     {
         public sbyte fieldTest;
         public char[] CharArray { get; set; }
+
+#if NANOFRAMEWORK_1_0
         public int Id { get; set; }
+#else
+        public int? Id { get; set; }
+#endif
         public string Name { get; set; }
 
         public float[] FloatArray { get; set; }

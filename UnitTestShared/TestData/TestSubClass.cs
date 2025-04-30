@@ -11,6 +11,9 @@ namespace UnitTestShared.TestData
 {
     public class TestSubClass : IEqualityComparer
     {
+#if !NANOFRAMEWORK_1_0
+        public DateTime? NullableDateTime { get; set; }
+#endif
         public Hashtable TestHashtable { get; set; }
 
         public byte[] Bytes { get; set; }
@@ -34,7 +37,12 @@ namespace UnitTestShared.TestData
                 x_.Ints.ArrayEqual(y_.Ints) &&
                 x_.DoubleArray.ArrayEqual(y_.DoubleArray) &&
                 x_.GuidArray.ArrayEqual(y_.GuidArray) &&
-                x_.TestHashtable.DictionaryEqual(y_.TestHashtable);
+                x_.TestHashtable.DictionaryEqual(y_.TestHashtable)
+#if !NANOFRAMEWORK_1_0
+                && x_.NullableDateTime == y_.NullableDateTime;
+#else
+                ;
+#endif
         }
 
         public int GetHashCode(object obj)
