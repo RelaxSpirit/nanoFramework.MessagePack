@@ -15,6 +15,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TestData\TestConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestData\TestClass.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\TestsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestData\TestEnum.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestData\TestSubClass.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnitTests.cs" />
   </ItemGroup>

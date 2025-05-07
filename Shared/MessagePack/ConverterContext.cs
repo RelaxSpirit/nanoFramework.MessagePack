@@ -205,8 +205,28 @@ namespace nanoFramework.MessagePack
                                 }
                                 else
                                 {
+#if !NANOFRAMEWORK_1_0
+                                if(memberValueMapType.IsEnum)
+                                {
+                                    var dataType = memberMpToken.ReadDataType();
 
-                                    memberMapping.SetValue(targetObject, DeserializeObject(memberValueMapType!, memberMpToken)!);
+                                    if (dataType == DataTypes.Null)
+                                        continue;
+
+                                    if (dataType == DataTypes.FixStr || dataType == DataTypes.Str8 || dataType == DataTypes.Str16 || dataType == DataTypes.Str32)
+                                    {
+                                        var stringEnumConverter = new FromStringEnumConverter(memberValueMapType);
+                                        Replace(memberValueMapType, new FromStringEnumConverter(memberValueMapType));
+
+                                        memberMpToken.Seek(0, System.IO.SeekOrigin.Begin);
+                                        memberMapping.SetValue(targetObject, stringEnumConverter.Read(memberMpToken)!);
+                                        continue;
+                                    }
+
+                                    memberMpToken.Seek(0, System.IO.SeekOrigin.Begin);
+                                }
+#endif
+                                memberMapping.SetValue(targetObject, DeserializeObject(memberValueMapType!, memberMpToken)!);
                                 }
                             }
                         }
@@ -264,6 +284,21 @@ namespace nanoFramework.MessagePack
                 return;
             }
 
+#if !NANOFRAMEWORK_1_0
+            if (type.IsEnum)
+            {
+                IConverter converter = GetConverter(type);
+
+                if (converter == null)
+                {
+                    converter = new FromStringEnumConverter(type);
+                    Replace(type, converter);
+                }
+
+                converter.Write(value, writer);
+                return;
+            }
+#endif
             var objectMap = GetMappingsValues(type, value);
             s_mapConverter.Write(objectMap, writer);
 

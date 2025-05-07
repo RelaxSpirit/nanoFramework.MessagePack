@@ -18,7 +18,10 @@ namespace UnitTestShared.TestData
         public int Id { get; set; }
 #else
         public int? Id { get; set; }
+
 #endif
+        public TestEnum Enumeration { get; set; }
+
         public string Name { get; set; }
 
         public float[] FloatArray { get; set; }
@@ -57,7 +60,8 @@ namespace UnitTestShared.TestData
                 x_.SubTestObjectArray.ArrayEqual(y_.SubTestObjectArray) &&
                 x_.TestArrayList.ArrayEqual(y_.TestArrayList) &&
                 x_.CharArray.ArrayEqual(y_.CharArray) &&
-                x_.fieldTest == y_.fieldTest;
+                x_.fieldTest == y_.fieldTest &&
+                x_.Enumeration == y_.Enumeration;
         }
 
         public override bool Equals(object? obj)

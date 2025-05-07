@@ -33,6 +33,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Converters\TimeSpanConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\UintConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\UlongConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Converters\FromStringEnumConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\UshortConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DataTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Dto\ArraySegment.cs" />

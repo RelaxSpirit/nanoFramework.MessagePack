@@ -19,6 +19,7 @@ namespace UnitTestShared.Helpers
             var test = new TestClass()
             {
                 Id = 1,
+                Enumeration = TestEnum.Two,
                 Name = "Firs test object",
                 FloatArray = new float[] { 1.0f, 345675.31f },
                 StringArray = new string[] { "Test1", "test2" },
