@@ -4,6 +4,9 @@
 using System;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+#if !NANOFRAMEWORK_1_0
+using System.Linq;
+#endif
 using nanoFramework.MessagePack.Stream;
 
 namespace nanoFramework.MessagePack.Converters
@@ -51,7 +54,11 @@ namespace nanoFramework.MessagePack.Converters
 
         private static Array ReadArray(IMessagePackReader reader, int length, Type arrayType)
         {
+#if NANOFRAMEWORK_1_0
             var elementType = arrayType.GetElementType();
+#else
+            var elementType = arrayType.GetElementType() ?? arrayType.GenericTypeArguments.FirstOrDefault();
+#endif
             var targetArray = (IList)Array.CreateInstance(elementType!, length);
             if (elementType!.IsArray)
             {

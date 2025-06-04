@@ -13,7 +13,7 @@ namespace nanoFramework.MessagePack.Converters
     internal class NullableConverter<ValueType> : IConverter where ValueType : struct
     {
       #nullable enable
-        internal static Nullable<ValueType> Read([NotNull] IMessagePackReader reader)
+        internal static ValueType? Read([NotNull] IMessagePackReader reader)
         {
             ArraySegment arraySegment = reader.ReadToken()!;
             DataTypes type = arraySegment.ReadDataType();

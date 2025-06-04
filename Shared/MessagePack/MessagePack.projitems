@@ -42,6 +42,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Exceptions\SerializationException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DataTypesExtension.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\NumberConverterHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MessagePackSerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ObjectTokenHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Stream\BaseReader.cs" />

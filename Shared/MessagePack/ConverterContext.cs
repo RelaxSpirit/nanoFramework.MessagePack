@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections;
+#if NANOFRAMEWORK_1_0
 using System.Diagnostics;
+#endif
 using System.Runtime.CompilerServices;
 using nanoFramework.MessagePack.Converters;
 using nanoFramework.MessagePack.Dto;
@@ -11,6 +13,9 @@ using nanoFramework.MessagePack.Exceptions;
 using nanoFramework.MessagePack.Extensions;
 using nanoFramework.MessagePack.Stream;
 using nanoFramework.MessagePack.Utility;
+using MessagePack.Extensions;
+
+
 #if !NANOFRAMEWORK_1_0
 using System.Collections.Concurrent;
 #endif
@@ -278,7 +283,7 @@ namespace nanoFramework.MessagePack
                 return;
             }
 
-            if (type.IsArray)
+            if (type.IsArray || value is IList)
             {
                 s_arrayConverter.Write(value, writer);
                 return;
@@ -306,14 +311,36 @@ namespace nanoFramework.MessagePack
 #nullable enable
         internal static object? DeserializeObject(Type type, IMessagePackReader reader)
         {
-            if (type.Name == typeof(IDictionary).Name || type.Name == typeof(Hashtable).Name)
+            if (type.Name == typeof(Hashtable).Name || type.IsImplementInterface(typeof(IDictionary)))
             {
+#if NANOFRAMEWORK_1_0
                 return MapConverter.Read(reader);
+#else
+                if (type.Name == typeof(Hashtable).Name)
+                {
+                    return MapConverter.Read(reader);
+                }
+                else
+                {
+                    var resultDictionary = Activator.CreateInstance(type)!;
+                    MapConverter.FillDictionary(reader, (IDictionary)resultDictionary);
+                    return resultDictionary;
+                }
+#endif
             }
 
-            if (type.IsArray)
+            if (type.IsArray || type.IsImplementInterface(typeof(IList)))
             {
-                return ArrayConverter.Read(reader, type);
+                var resultArray = ArrayConverter.Read(reader, type);
+                if (type.IsArray)
+                {
+                    return resultArray;
+                }
+                else
+                {
+                    var constructor = type.GetConstructor(new Type[] { resultArray!.GetType() }) ?? throw new Exception($"Target type {type.FullName} does not have a parameterless constructor");
+                    return constructor.Invoke(new object[] { resultArray });
+                }
             }
 
             var objectMap = reader.GetMassagePackObjectTokens();

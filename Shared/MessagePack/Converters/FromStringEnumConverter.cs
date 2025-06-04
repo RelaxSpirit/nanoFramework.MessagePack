@@ -68,7 +68,7 @@ namespace nanoFramework.MessagePack.Converters
             {
                 var valueType = value.GetType();
 
-                if (!value.GetType().IsEnum)
+                if (!valueType.IsEnum)
                     throw new ArgumentException($"Value is type {valueType} and it is not Enum type.", nameof(value));
 
                 if(valueType.FullName != _enumType.FullName)

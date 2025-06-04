@@ -110,6 +110,7 @@ namespace NFUnitTest
         [TestMethod]
         public void ProcessCustomObjectTest()
         {
+            
             var test = TestsHelper.GetTestClassObject();
 #if !NANOFRAMEWORK_1_0
             test.SubTestObject.NullableDateTime = DateTime.UtcNow;
@@ -303,6 +304,30 @@ namespace NFUnitTest
             {
                 Assert.AreEqual(entry.Value, hashtableValue[entry.Key]);
             }
+#if !NANOFRAMEWORK_1_0
+            Dictionary<string, string> testDictionary = new Dictionary<string, string>()
+            {
+                {"test", "value" }
+            };
+
+            arrayBytes = MessagePackSerializer.Serialize(testDictionary);
+            var resultDictionary = (Dictionary<string, string>)MessagePackSerializer.Deserialize(typeof(Dictionary<string, string>), arrayBytes)!;
+            Assert.AreEqual(testDictionary.Count, resultDictionary.Count);
+            foreach (KeyValuePair<string, string> entry in testDictionary)
+            {
+                Assert.AreEqual(entry.Value, resultDictionary[entry.Key]);
+            }
+
+            List<int> testList = [1234, 1313131, 311313122];
+            arrayBytes = MessagePackSerializer.Serialize(testList);
+            var resultList = (List<int>)MessagePackSerializer.Deserialize(typeof(List<int>), arrayBytes)!;
+            Assert.AreEqual(testList.Count, resultList.Count);
+
+            for(int i = 0; i < testList.Count; i++)
+            {
+                Assert.AreEqual(testList[i], resultList[i]);
+            }
+#endif
         }
     }
 }
