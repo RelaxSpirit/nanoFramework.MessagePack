@@ -18,6 +18,7 @@ using MessagePack.Extensions;
 
 #if !NANOFRAMEWORK_1_0
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 #endif
 
 namespace nanoFramework.MessagePack
@@ -311,7 +312,7 @@ namespace nanoFramework.MessagePack
 #nullable enable
         internal static object? DeserializeObject(Type type, IMessagePackReader reader)
         {
-            if (type.Name == typeof(Hashtable).Name || type.IsImplementInterface(typeof(IDictionary)))
+            if (type.Name == typeof(Hashtable).Name || type.IsImplementInterface(typeof(IDictionary)) || type.IsGenericDictionary())
             {
 #if NANOFRAMEWORK_1_0
                 return MapConverter.Read(reader);
@@ -322,14 +323,25 @@ namespace nanoFramework.MessagePack
                 }
                 else
                 {
-                    var resultDictionary = Activator.CreateInstance(type)!;
-                    MapConverter.FillDictionary(reader, (IDictionary)resultDictionary);
+                    object? resultDictionary;
+                    if (type.IsInterface)
+                    {
+                        var genericType = typeof(Dictionary<,>).MakeGenericType(type.GenericTypeArguments);
+                        resultDictionary = Activator.CreateInstance(genericType);
+                    }
+                    else
+                    {
+                        resultDictionary = Activator.CreateInstance(type);
+                        
+                    }
+
+                    MapConverter.FillDictionary(reader, (IDictionary)resultDictionary!);
                     return resultDictionary;
                 }
 #endif
             }
 
-            if (type.IsArray || type.IsImplementInterface(typeof(IList)))
+            if (type.IsArray || type.IsImplementInterface(typeof(IEnumerable)))
             {
                 var resultArray = ArrayConverter.Read(reader, type);
                 if (type.IsArray)
@@ -338,8 +350,20 @@ namespace nanoFramework.MessagePack
                 }
                 else
                 {
-                    var constructor = type.GetConstructor(new Type[] { resultArray!.GetType() }) ?? throw new Exception($"Target type {type.FullName} does not have a parameterless constructor");
-                    return constructor.Invoke(new object[] { resultArray });
+                    if (type.IsInterface)
+                    {
+#if NANOFRAMEWORK_1_0
+                        return resultArray;
+#else
+                        var genericType = typeof(List<>).MakeGenericType(type.GenericTypeArguments);
+                        return Activator.CreateInstance(genericType, new object[] { resultArray! });
+#endif
+                    }
+                    else
+                    {
+                        var constructor = type.GetConstructor(new Type[] { resultArray!.GetType() }) ?? throw new Exception($"Target type {type.FullName} does not have a parameterless constructor");
+                        return constructor.Invoke(new object[] { resultArray });
+                    }
                 }
             }
 

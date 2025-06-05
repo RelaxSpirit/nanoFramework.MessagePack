@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+#if !NANOFRAMEWORK_1_0
+using System.Collections.Generic;
+#endif
 
 namespace MessagePack.Extensions
 {
@@ -16,6 +19,16 @@ namespace MessagePack.Extensions
             }
 
             return false;
+        }
+
+        internal static bool IsGenericDictionary(this Type sourceType)
+        {
+#if NANOFRAMEWORK_1_0
+            return false;
+#else
+            return sourceType.IsInterface && sourceType.IsGenericType && typeof(IDictionary<,>).Name == sourceType.Name;
+#endif
+            
         }
     }
 }
