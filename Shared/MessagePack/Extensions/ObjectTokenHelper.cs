@@ -10,10 +10,10 @@ namespace nanoFramework.MessagePack.Extensions
     internal static class ObjectTokenHelper
     {
 #nullable enable
-        internal static Hashtable? GetMassagePackObjectTokens([NotNull] this IMessagePackReader reader)
+        internal static Hashtable GetMassagePackObjectTokens([NotNull] this IMessagePackReader reader)
         {
             var length = reader.ReadMapLength();
-            return length > 0 ? reader.ReadMap(length) : null;
+            return reader.ReadMap(length);
         }
 
         private static Hashtable ReadMap(this IMessagePackReader reader, uint length)

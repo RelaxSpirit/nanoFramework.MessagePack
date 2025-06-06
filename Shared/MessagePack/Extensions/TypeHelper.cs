@@ -4,6 +4,7 @@
 using System;
 #if !NANOFRAMEWORK_1_0
 using System.Collections.Generic;
+using System.Linq;
 #endif
 
 namespace MessagePack.Extensions
@@ -15,7 +16,9 @@ namespace MessagePack.Extensions
             foreach(Type interfaceType in  sourceType.GetInterfaces())
             {
                 if (interfaceType.Name == targetInterfaceType.Name)
+                {
                     return true;
+                }
             }
 
             return false;
@@ -28,7 +31,24 @@ namespace MessagePack.Extensions
 #else
             return sourceType.IsInterface && sourceType.IsGenericType && typeof(IDictionary<,>).Name == sourceType.Name;
 #endif
-            
+        }
+
+        internal static bool IsGenericArray(this Type sourceType)
+        {
+#if NANOFRAMEWORK_1_0
+            return false;
+#else
+            return sourceType.IsInterface && sourceType.IsGenericType && (typeof(ICollection<>).Name == sourceType.Name || typeof(IList<>).Name == sourceType.Name);
+#endif
+        }
+
+        internal static bool IsNullableGenericEnum(this Type sourceType)
+        {
+#if NANOFRAMEWORK_1_0
+            return false;
+#else
+            return sourceType.IsGenericType && typeof(Nullable<>).Name == sourceType.Name && (sourceType.GenericTypeArguments.FirstOrDefault()?.IsEnum ?? false);
+#endif
         }
     }
 }

@@ -89,9 +89,14 @@ namespace nanoFramework.MessagePack.Converters
             {
                 var dictionaryType = targetDictionary.GetType();
 
+                if (dictionaryType.GenericTypeArguments.Length == 0)
+                {
+                    dictionaryType = targetDictionary.Keys.GetType();
+                }
+
                 while (length-- > 0)
                 {
-                    targetDictionary[MessagePackSerializer.Deserialize(dictionaryType.GenericTypeArguments[0], (byte[])reader.ReadToken()!)!] = MessagePackSerializer.Deserialize(dictionaryType.GenericTypeArguments[1], (byte[])reader.ReadToken()!.ReadToken()!);
+                    targetDictionary[MessagePackSerializer.Deserialize(dictionaryType.GenericTypeArguments[0], (byte[])reader.ReadToken()!)!] = MessagePackSerializer.Deserialize(dictionaryType.GenericTypeArguments[1], (byte[])reader.ReadToken()!);
                 }
             }
         }

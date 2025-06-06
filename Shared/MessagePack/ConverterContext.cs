@@ -192,10 +192,12 @@ namespace nanoFramework.MessagePack
                 if (!memberMapping.OriginalName!.StartsWith(MemberMapping.GET_))
                 {
 #endif
-                    if (objectValuesMap.Contains(memberMapping.Name!))
+                if (objectValuesMap.Contains(memberMapping.Name!))
+                {
+                    var memberMpToken = (ArraySegment)objectValuesMap[memberMapping.Name!]!;
+                    if (memberMpToken != null)
                     {
-                        var memberMpToken = (ArraySegment)objectValuesMap[memberMapping.Name!]!;
-                        if (memberMpToken != null)
+                        try
                         {
                             var memberValueMapType = memberMapping.GetMemberType();
                             var converter = GetConverter(memberValueMapType!);
@@ -212,34 +214,39 @@ namespace nanoFramework.MessagePack
                                 else
                                 {
 #if !NANOFRAMEWORK_1_0
-                                if(memberValueMapType.IsEnum)
-                                {
-                                    var dataType = memberMpToken.ReadDataType();
-
-                                    if (dataType == DataTypes.Null)
-                                        continue;
-
-                                    if (dataType == DataTypes.FixStr || dataType == DataTypes.Str8 || dataType == DataTypes.Str16 || dataType == DataTypes.Str32)
+                                    if (memberValueMapType.IsEnum)
                                     {
-                                        var stringEnumConverter = new FromStringEnumConverter(memberValueMapType);
-                                        Replace(memberValueMapType, new FromStringEnumConverter(memberValueMapType));
+                                        var dataType = memberMpToken.ReadDataType();
+
+                                        if (dataType == DataTypes.Null)
+                                            continue;
+
+                                        if (dataType == DataTypes.FixStr || dataType == DataTypes.Str8 || dataType == DataTypes.Str16 || dataType == DataTypes.Str32)
+                                        {
+                                            var stringEnumConverter = new FromStringEnumConverter(memberValueMapType);
+                                            Replace(memberValueMapType, new FromStringEnumConverter(memberValueMapType));
+
+                                            memberMpToken.Seek(0, System.IO.SeekOrigin.Begin);
+                                            memberMapping.SetValue(targetObject, stringEnumConverter.Read(memberMpToken)!);
+                                            continue;
+                                        }
 
                                         memberMpToken.Seek(0, System.IO.SeekOrigin.Begin);
-                                        memberMapping.SetValue(targetObject, stringEnumConverter.Read(memberMpToken)!);
-                                        continue;
                                     }
-
-                                    memberMpToken.Seek(0, System.IO.SeekOrigin.Begin);
-                                }
 #endif
-                                memberMapping.SetValue(targetObject, DeserializeObject(memberValueMapType!, memberMpToken)!);
+                                    memberMapping.SetValue(targetObject, DeserializeObject(memberValueMapType!, memberMpToken)!);
                                 }
                             }
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new SerializationException($"Error deserialize member name: '{memberMapping.Name}' and type: '{memberMapping.GetMemberType()}'\n{ex}");
                         }
                     }
 #if NANOFRAMEWORK_1_0
                 }
 #endif
+                }
             }
         }
 
@@ -284,7 +291,7 @@ namespace nanoFramework.MessagePack
                 return;
             }
 
-            if (type.IsArray || value is IList)
+            if (type.IsArray || value is IList || value is ICollection)
             {
                 s_arrayConverter.Write(value, writer);
                 return;
@@ -327,21 +334,40 @@ namespace nanoFramework.MessagePack
                     if (type.IsInterface)
                     {
                         var genericType = typeof(Dictionary<,>).MakeGenericType(type.GenericTypeArguments);
-                        resultDictionary = Activator.CreateInstance(genericType);
+                        resultDictionary = Activator.CreateInstance(genericType);                        
                     }
                     else
                     {
-                        resultDictionary = Activator.CreateInstance(type);
-                        
+                        resultDictionary = Activator.CreateInstance(type);                    
                     }
 
                     MapConverter.FillDictionary(reader, (IDictionary)resultDictionary!);
+                    
                     return resultDictionary;
                 }
 #endif
             }
 
-            if (type.IsArray || type.IsImplementInterface(typeof(IEnumerable)))
+            if(type.IsEnum || type.IsNullableGenericEnum())
+            {
+#if !NANOFRAMEWORK_1_0
+                var enumType = type.IsEnum ? type : type.GenericTypeArguments[0];
+
+                IConverter converter = GetConverter(enumType);
+
+                if (converter == null)
+                {
+                    converter = new FromStringEnumConverter(enumType);
+                    Replace(type, converter);
+                }
+
+                return converter.Read(reader);
+#else
+                return GetConverter(typeof(int)).Read(reader);
+#endif
+            }
+
+            if (type.IsArray || type.IsImplementInterface(typeof(IList)) || type.IsImplementInterface(typeof(ICollection)) || type.IsGenericArray())
             {
                 var resultArray = ArrayConverter.Read(reader, type);
                 if (type.IsArray)
@@ -367,16 +393,24 @@ namespace nanoFramework.MessagePack
                 }
             }
 
-            var objectMap = reader.GetMassagePackObjectTokens();
-            if (objectMap != null && objectMap is Hashtable targetObjectMap)
+            try
             {
-                var targetObject = CreateInstance(type);
-                SetMappingsValues(type, targetObject, targetObjectMap);
-                return targetObject;
+                var objectMap = reader.GetMassagePackObjectTokens();
+
+                if (objectMap is Hashtable targetObjectMap)
+                {
+                    var targetObject = CreateInstance(type);
+                    SetMappingsValues(type, targetObject, targetObjectMap);
+                    return targetObject;
+                }
+                else
+                {
+                    throw new NullReferenceException();
+                }
             }
-            else
+            catch(Exception ex)
             {
-                throw new SerializationException($"Type {type.Name} can not by deserialize.");
+                throw new SerializationException($"Type {type.Name} can not by deserialize.\n{ex}");
             }
         }
 

@@ -110,7 +110,6 @@ namespace NFUnitTest
         [TestMethod]
         public void ProcessCustomObjectTest()
         {
-            
             var test = TestsHelper.GetTestClassObject();
 #if !NANOFRAMEWORK_1_0
             test.SubTestObject.NullableDateTime = DateTime.UtcNow;
