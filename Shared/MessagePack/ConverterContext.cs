@@ -159,27 +159,15 @@ namespace nanoFramework.MessagePack
             return null!;
         }
 
-        internal static Hashtable GetMappingsValues(Type targetType, object value)
+        /// <summary>
+        /// Map and set values in to target object from hashtable.
+        /// </summary>
+        /// <param name="targetObject">Target object instance.</param>
+        /// <param name="objectValuesMap">Hashtable fields names and values.</param>
+        /// <exception cref="SerializationException">Error serialization.</exception>
+        public static void FillTragetObject(object targetObject, Hashtable objectValuesMap)
         {
-            var memberMappings = GetMemberMapping(targetType);
-
-            Hashtable result = new Hashtable();
-
-            foreach (var memberMapping in memberMappings)
-            {
-#if NANOFRAMEWORK_1_0
-                if (!memberMapping.OriginalName!.StartsWith(MemberMapping.SET_))
-                {
-#endif
-                    if (memberMapping.TryGetValue(value, out var memberValue) && memberValue != null)
-                    {
-                        result.Add(memberMapping.Name!, memberValue);
-                    }
-#if NANOFRAMEWORK_1_0
-                }
-#endif
-            }
-            return result;
+            SetMappingsValues(targetObject.GetType(), targetObject, objectValuesMap);
         }
 
         internal static void SetMappingsValues(Type targetType, object targetObject, Hashtable objectValuesMap)
@@ -221,7 +209,7 @@ namespace nanoFramework.MessagePack
                                         if (dataType == DataTypes.Null)
                                             continue;
 
-                                        if (dataType == DataTypes.FixStr || dataType == DataTypes.Str8 || dataType == DataTypes.Str16 || dataType == DataTypes.Str32)
+                                        if (dataType.GetHighBits(3) == DataTypes.FixStr.GetHighBits(3) || dataType == DataTypes.Str8 || dataType == DataTypes.Str16 || dataType == DataTypes.Str32)
                                         {
                                             var stringEnumConverter = new FromStringEnumConverter(memberValueMapType);
                                             Replace(memberValueMapType, new FromStringEnumConverter(memberValueMapType));
@@ -248,6 +236,29 @@ namespace nanoFramework.MessagePack
 #endif
                 }
             }
+        }
+
+        internal static Hashtable GetMappingsValues(Type targetType, object value)
+        {
+            var memberMappings = GetMemberMapping(targetType);
+
+            Hashtable result = new Hashtable();
+
+            foreach (var memberMapping in memberMappings)
+            {
+#if NANOFRAMEWORK_1_0
+                if (!memberMapping.OriginalName!.StartsWith(MemberMapping.SET_))
+                {
+#endif
+                    if (memberMapping.TryGetValue(value, out var memberValue) && memberValue != null)
+                    {
+                        result.Add(memberMapping.Name!, memberValue);
+                    }
+#if NANOFRAMEWORK_1_0
+                }
+#endif
+            }
+            return result;
         }
 
         internal static object CreateInstance(Type targetType)
