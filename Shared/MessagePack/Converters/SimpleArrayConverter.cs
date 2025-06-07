@@ -38,13 +38,16 @@ namespace nanoFramework.MessagePack.Converters
                 return;
             }
 
-            var converter = ConverterContext.GetConverter(_elementType) ?? throw ExceptionUtility.NoConverterForCollectionElement(_elementType, "item");
-
             writer.WriteArrayHeader((uint)value.Length);
 
-            foreach (var element in value)
+            if (value.Length > 1)
             {
-                converter.Write(element, writer);
+                var converter = ConverterContext.GetConverter(_elementType) ?? throw ExceptionUtility.NoConverterForCollectionElement(_elementType, "item");
+
+                foreach (var element in value)
+                {
+                    converter.Write(element, writer);
+                }
             }
         }
 

@@ -18,7 +18,7 @@ namespace nanoFramework.MessagePack.Converters
     {
         private static void Write(IList value, IMessagePackWriter writer)
         {
-            if (value == null || value.Count < 1)
+            if (value == null)
             {
                 ConverterContext.NullConverter.Write(value, writer);
                 return;
@@ -26,30 +26,32 @@ namespace nanoFramework.MessagePack.Converters
 
             writer.WriteArrayHeader((uint)value.Count);
 
-            var elementType = value[0]!.GetType();
-            var elementConverter = ConverterContext.GetConverter(elementType);
-            if (elementConverter != null)
+            if (value.Count > 0)
             {
-                foreach (var element in value)
+                var elementType = value[0]!.GetType();
+                var elementConverter = ConverterContext.GetConverter(elementType);
+                if (elementConverter != null)
                 {
-                    elementConverter.Write(element, writer);
+                    foreach (var element in value)
+                    {
+                        elementConverter.Write(element, writer);
+                    }
+                }
+                else
+                {
+                    foreach (var element in value)
+                    {
+                        ConverterContext.SerializeObject(elementType, element, writer);
+                    }
                 }
             }
-            else
-            {
-                foreach (var element in value)
-                {
-                    ConverterContext.SerializeObject(elementType, element, writer);
-                }
-            }
-
         }
 
 #nullable enable
         internal static IList? Read(IMessagePackReader reader, Type arrayType)
         {
             var length = (int)reader.ReadArrayLength();
-            return length > 0 ? ReadArray(reader, length, arrayType) : null;
+            return length > -1 ? ReadArray(reader, length, arrayType) : null;
         }
 
         private static Array ReadArray(IMessagePackReader reader, int length, Type arrayType)
@@ -60,32 +62,35 @@ namespace nanoFramework.MessagePack.Converters
             var elementType = arrayType.GetElementType() ?? arrayType.GenericTypeArguments.FirstOrDefault();
 #endif
             var targetArray = (IList)Array.CreateInstance(elementType!, length);
-            if (elementType!.IsArray)
+
+            if (length > 0)
             {
-                for (var i = 0; i < length; i++)
-                {
-                    targetArray[i] = Read(reader, elementType);
-                }
-            }
-            else
-            {
-                var converter = ConverterContext.GetConverter(elementType);
-                if (converter != null)
+                if (elementType!.IsArray)
                 {
                     for (var i = 0; i < length; i++)
                     {
-                        targetArray[i] = converter.Read(reader);
+                        targetArray[i] = Read(reader, elementType);
                     }
                 }
                 else
                 {
-                    for (var i = 0; i < length; i++)
+                    var converter = ConverterContext.GetConverter(elementType);
+                    if (converter != null)
                     {
-                        targetArray[i] = ConverterContext.DeserializeObject(elementType, reader);
+                        for (var i = 0; i < length; i++)
+                        {
+                            targetArray[i] = converter.Read(reader);
+                        }
+                    }
+                    else
+                    {
+                        for (var i = 0; i < length; i++)
+                        {
+                            targetArray[i] = ConverterContext.DeserializeObject(elementType, reader);
+                        }
                     }
                 }
             }
-
             return (Array)targetArray;
         }
 

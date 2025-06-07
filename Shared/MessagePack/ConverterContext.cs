@@ -370,6 +370,10 @@ namespace nanoFramework.MessagePack
             if (type.IsArray || type.IsImplementInterface(typeof(IList)) || type.IsImplementInterface(typeof(ICollection)) || type.IsGenericArray())
             {
                 var resultArray = ArrayConverter.Read(reader, type);
+
+                if (resultArray == null)
+                    return null;
+
                 if (type.IsArray)
                 {
                     return resultArray;

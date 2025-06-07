@@ -29,7 +29,7 @@ namespace MessagePack.Extensions
 #if NANOFRAMEWORK_1_0
             return false;
 #else
-            return sourceType.IsInterface && sourceType.IsGenericType && typeof(IDictionary<,>).Name == sourceType.Name;
+            return sourceType.IsInterface && sourceType.IsGenericType && (typeof(IDictionary<,>).Name == sourceType.Name || typeof(IReadOnlyDictionary<,>).Name == sourceType.Name);
 #endif
         }
 
@@ -38,7 +38,7 @@ namespace MessagePack.Extensions
 #if NANOFRAMEWORK_1_0
             return false;
 #else
-            return sourceType.IsInterface && sourceType.IsGenericType && (typeof(ICollection<>).Name == sourceType.Name || typeof(IList<>).Name == sourceType.Name);
+            return sourceType.IsInterface && sourceType.IsGenericType && (typeof(ICollection<>).Name == sourceType.Name || typeof(IList<>).Name == sourceType.Name || typeof(IReadOnlyCollection<>).Name == sourceType.Name || typeof(IReadOnlyList<>).Name == sourceType.Name || typeof(IEnumerable<>).Name == sourceType.Name);
 #endif
         }
 

@@ -38,6 +38,12 @@ namespace nanoFramework.MessagePack.Converters
         private static ArrayList? Read(IMessagePackReader reader)
         {
             var length = reader.ReadArrayLength();
+
+            if(length == 0)
+            {
+                return new ArrayList();
+            }
+
             return ((long)length) > -1 ? ReadArrayList(reader, length) : null;
         }
 
