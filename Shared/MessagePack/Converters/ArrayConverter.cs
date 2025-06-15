@@ -28,21 +28,28 @@ namespace nanoFramework.MessagePack.Converters
 
             if (value.Count > 0)
             {
-                var elementType = value[0]!.GetType();
-                var elementConverter = ConverterContext.GetConverter(elementType);
-                if (elementConverter != null)
+                if (value[0] != null)
                 {
-                    foreach (var element in value)
+                    var elementType = value[0]!.GetType();
+                    var elementConverter = ConverterContext.GetConverter(elementType);
+                    if (elementConverter != null)
                     {
-                        elementConverter.Write(element, writer);
+                        foreach (var element in value)
+                        {
+                            elementConverter.Write(element, writer);
+                        }
+                    }
+                    else
+                    {
+                        foreach (var element in value)
+                        {
+                            ConverterContext.SerializeObject(elementType, element, writer);
+                        }
                     }
                 }
                 else
                 {
-                    foreach (var element in value)
-                    {
-                        ConverterContext.SerializeObject(elementType, element, writer);
-                    }
+                    ConverterContext.NullConverter.Write(value[0], writer);
                 }
             }
         }
@@ -86,7 +93,16 @@ namespace nanoFramework.MessagePack.Converters
                     {
                         for (var i = 0; i < length; i++)
                         {
-                            targetArray[i] = ConverterContext.DeserializeObject(elementType, reader);
+                            var mpToken = reader.ReadToken();
+                            if (mpToken == null || mpToken.ReadDataType() == DataTypes.Null)
+                            {
+                                targetArray[i] = null;
+                            }
+                            else
+                            {
+                                mpToken.Seek(0, System.IO.SeekOrigin.Begin);
+                                targetArray[i] = ConverterContext.DeserializeObject(elementType, mpToken);
+                            }
                         }
                     }
                 }

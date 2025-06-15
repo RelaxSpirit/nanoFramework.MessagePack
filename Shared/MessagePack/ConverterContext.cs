@@ -170,6 +170,16 @@ namespace nanoFramework.MessagePack
             SetMappingsValues(targetObject.GetType(), targetObject, objectValuesMap);
         }
 
+        /// <summary>
+        /// Get hashtable fields names and values by object.
+        /// </summary>
+        /// <param name="targetObject">Targrt objects.</param>
+        /// <returns>>Hashtable fields names and values.</returns>
+        public static Hashtable GetTargetObjectHashtable(object targetObject)
+        {
+            return GetMappingsValues(targetObject.GetType(), targetObject);
+        }
+
         internal static void SetMappingsValues(Type targetType, object targetObject, Hashtable objectValuesMap)
         {
             var memberMappings = GetMemberMapping(targetType);
