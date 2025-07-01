@@ -3,6 +3,9 @@
 
 using System;
 using System.Collections;
+#if !NANOFRAMEWORK_1_0
+using System.Linq;
+#endif
 using System.Reflection;
 using nanoFramework.MessagePack.Dto;
 
@@ -108,8 +111,11 @@ namespace nanoFramework.MessagePack.Utility
                 return;
             }
 
-            PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var propertyInfos = list.Cast<PropertyInfo>();
 
+            PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .Where(c => !propertyInfos.Any(x => x.Name == c.Name)).ToArray();
+            
             foreach (PropertyInfo property in properties)
             {
                 if (property.DeclaringType == type) //skip fields not declared on type, we will find it in a later recursion
