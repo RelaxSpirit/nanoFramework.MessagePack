@@ -40,7 +40,7 @@ namespace nanoFramework.MessagePack.Converters
 
             writer.WriteArrayHeader((uint)value.Length);
 
-            if (value.Length > 1)
+            if (value.Length > 0)
             {
                 var converter = ConverterContext.GetConverter(_elementType) ?? throw ExceptionUtility.NoConverterForCollectionElement(_elementType, "item");
 
