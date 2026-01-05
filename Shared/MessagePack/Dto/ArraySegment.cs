@@ -181,7 +181,7 @@ namespace nanoFramework.MessagePack.Dto
         public class ArraySegmentEnumerator : IEnumerator
         {
             private int _position = -1;
-            private ArraySegment _arraySegment;
+            private readonly ArraySegment _arraySegment;
 
             internal ArraySegmentEnumerator(ArraySegment arraySegment)
             {
