@@ -19,7 +19,7 @@ namespace UnitTestShared.TestData
 
             for (int i = 0; i < length; i++)
             {
-                int wordIndex = (int)intConverter.Read(reader)!;
+                int wordIndex = (int)intConverter!.Read(reader)!;
                 sb.Append(SharedWordDictionary.WordDictionary[wordIndex]);
                 sb.Append(' ');
             }
@@ -41,7 +41,7 @@ namespace UnitTestShared.TestData
             foreach (var word in messageWords)
             {
                 int wordIndex = SharedWordDictionary.WordDictionary.IndexOf(word);
-                intConverter.Write(wordIndex, writer);
+                intConverter!.Write(wordIndex, writer);
             }
         }
 

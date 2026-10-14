@@ -1,7 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+#if NANOFRAMEWORK_1_0
 using System;
+#endif
 using nanoFramework.MessagePack.Exceptions;
 using nanoFramework.MessagePack.Extensions;
 
@@ -14,14 +16,9 @@ namespace nanoFramework.MessagePack.Utility
             return new SerializationException($"Got {actual:G} (0x{actual:X}), while expecting one of these: {expectedCodes.JoinToString(", ")}");
         }
 
-        public static Exception CantReadStringAsBinary()
-        {
-            return new SerializationException($"Reading a string as a byte array is disabled. Set 'binaryCompatibilityMode' parameter in MsgPackContext constructor to true to enable it");
-        }
-
         public static Exception NotEnoughBytes(int actual, int expected)
         {
-            return new SerializationException($"Expected {expected} bytes, got {actual} bytes.");
+            return NotEnoughBytes((long)actual, (long)expected);
         }
 
         public static Exception NotEnoughBytes(long actual, long expected)
@@ -31,20 +28,15 @@ namespace nanoFramework.MessagePack.Utility
 
         public static Exception NoConverterForCollectionElement(Type type, string elementName)
         {
-            return new SerializationException($"Provide converter for {elementName}: {type.Name}");
+            return new SerializationException($"No converter provided for element '{elementName}' of type {type.Name}.");
         }
 
-        public static Exception IntDeserializationFailure(DataTypes type)
+        public static Exception NumberSerializationFailure(long value)
         {
-            return new SerializationException($"Waited for an int, got {type:G} (0x{type:X})");
+            return NumberSerializationFailure((ulong)value);
         }
 
-        public static Exception IntSerializationFailure(long value)
-        {
-            return new SerializationException($"Can't serialize {value}");
-        }
-
-        public static Exception IntSerializationFailure(ulong value)
+        public static Exception NumberSerializationFailure(ulong value)
         {
             return new SerializationException($"Can't serialize {value}");
         }

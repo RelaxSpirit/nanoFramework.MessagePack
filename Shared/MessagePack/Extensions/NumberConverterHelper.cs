@@ -1,8 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+#if NANOFRAMEWORK_1_0
 using System;
-using nanoFramework.MessagePack.Dto;
+#endif
 using nanoFramework.MessagePack.Stream;
 using nanoFramework.MessagePack.Utility;
 
@@ -10,11 +11,6 @@ namespace nanoFramework.MessagePack.Extensions
 {
     internal static class NumberConverterHelper
     {
-        internal static void WriteByteValue(this byte value, IMessagePackWriter writer)
-        {
-            writer.Write(value);
-        }
-
         internal static void WriteUShortValue(ushort value, IMessagePackWriter writer)
         {
             unchecked
@@ -37,18 +33,13 @@ namespace nanoFramework.MessagePack.Extensions
 
         internal static sbyte ReadInt8(IMessagePackReader reader)
         {
-            var temp = reader.ReadByte();
+            byte temp = reader.ReadByte();
             if (temp <= sbyte.MaxValue)
             {
                 return (sbyte)temp;
             }
 
             return (sbyte)((int)temp - byte.MaxValue - 1);
-        }
-
-        internal static byte ReadUInt8(IMessagePackReader reader)
-        {
-            return reader.ReadByte();
         }
 
         internal static ushort ReadUInt16(IMessagePackReader reader)
@@ -58,7 +49,7 @@ namespace nanoFramework.MessagePack.Extensions
 
         internal static short ReadInt16(IMessagePackReader reader)
         {
-            var temp = ReadUInt16(reader);
+            ushort temp = ReadUInt16(reader);
             if (temp <= short.MaxValue)
             {
                 return (short)temp;
@@ -69,7 +60,7 @@ namespace nanoFramework.MessagePack.Extensions
 
         internal static int ReadInt32(IMessagePackReader reader)
         {
-            var temp = ReadUInt32(reader);
+            uint temp = ReadUInt32(reader);
             if (temp <= int.MaxValue)
             {
                 return (int)temp;
@@ -80,7 +71,7 @@ namespace nanoFramework.MessagePack.Extensions
 
         internal static uint ReadUInt32(IMessagePackReader reader)
         {
-            var temp = (uint)(reader.ReadByte() << 24);
+            uint temp = (uint)(reader.ReadByte() << 24);
             temp += (uint)reader.ReadByte() << 16;
             temp += (uint)reader.ReadByte() << 8;
             temp += reader.ReadByte();
@@ -90,7 +81,7 @@ namespace nanoFramework.MessagePack.Extensions
 
         internal static ulong ReadUInt64(IMessagePackReader reader)
         {
-            var temp = (ulong)reader.ReadByte() << 56;
+            ulong temp = (ulong)reader.ReadByte() << 56;
             temp += (ulong)reader.ReadByte() << 48;
             temp += (ulong)reader.ReadByte() << 40;
             temp += (ulong)reader.ReadByte() << 32;
@@ -104,7 +95,7 @@ namespace nanoFramework.MessagePack.Extensions
 
         internal static long ReadInt64(this IMessagePackReader reader)
         {
-            var temp = ReadUInt64(reader);
+            ulong temp = ReadUInt64(reader);
             if (temp <= long.MaxValue)
             {
                 return (long)temp;
@@ -152,7 +143,7 @@ namespace nanoFramework.MessagePack.Extensions
             }
 
             writer.Write(DataTypes.Int8);
-            WriteSByteValue((sbyte)value, writer);
+            writer.Write((byte)value);
             return true;
         }
 
@@ -164,9 +155,9 @@ namespace nanoFramework.MessagePack.Extensions
 
         internal static bool TryGetNegativeNumber(DataTypes type, out sbyte temp)
         {
-            temp = (sbyte)((byte)type - 1 - byte.MaxValue);
-
-            return type.GetHighBits(3) == DataTypes.NegativeFixNum.GetHighBits(3);
+            bool isNegative = type.GetHighBits(3) == DataTypes.NegativeFixNum.GetHighBits(3);
+            temp = (sbyte)(isNegative ? ((byte)type - 1 - byte.MaxValue) : 0);
+            return isNegative;
         }
 
         internal static bool TryGetInt32(DataTypes type, IMessagePackReader reader, out int result)
@@ -187,13 +178,13 @@ namespace nanoFramework.MessagePack.Extensions
             switch (type)
             {
                 case DataTypes.UInt8:
-                    result = ReadUInt8(reader);
+                    result = reader.ReadByte();
                     return true;
                 case DataTypes.UInt16:
                     result = ReadUInt16(reader);
                     return true;
                 case DataTypes.UInt32:
-                    var uintValue = ReadUInt32(reader);
+                    uint uintValue = ReadUInt32(reader);
 
                     if (uintValue <= int.MaxValue)
                     {
@@ -234,7 +225,7 @@ namespace nanoFramework.MessagePack.Extensions
             switch (type)
             {
                 case DataTypes.UInt8:
-                    result = ReadUInt8(reader);
+                    result = reader.ReadByte();
                     return true;
                 case DataTypes.UInt16:
                     result = ReadUInt16(reader);
@@ -243,7 +234,7 @@ namespace nanoFramework.MessagePack.Extensions
                     result = ReadUInt32(reader);
                     return true;
                 case DataTypes.UInt64:
-                    var ulongValue = ReadUInt64(reader);
+                    ulong ulongValue = ReadUInt64(reader);
                     if (ulongValue <= long.MaxValue)
                     {
                         result = (long)ulongValue;
@@ -271,11 +262,6 @@ namespace nanoFramework.MessagePack.Extensions
             }
         }
 
-        private static void WriteSByteValue(sbyte value, IMessagePackWriter writer)
-        {
-            writer.Write((byte)value);
-        }
-
         private static bool TryWriteUInt8(ulong value, IMessagePackWriter writer)
         {
             if (value > byte.MaxValue)
@@ -284,7 +270,7 @@ namespace nanoFramework.MessagePack.Extensions
             }
 
             writer.Write(DataTypes.UInt8);
-            ((byte)value).WriteByteValue(writer);
+            writer.Write((byte)value);
             return true;
         }
 
@@ -433,7 +419,7 @@ namespace nanoFramework.MessagePack.Extensions
                 return;
             }
 
-            throw ExceptionUtility.IntSerializationFailure(value);
+            throw ExceptionUtility.NumberSerializationFailure(value);
         }
 
         internal static void WriteNonNegativeInteger(ulong value, IMessagePackWriter writer)
@@ -463,12 +449,12 @@ namespace nanoFramework.MessagePack.Extensions
                 return;
             }
 
-            throw ExceptionUtility.IntSerializationFailure(value);
+            throw ExceptionUtility.NumberSerializationFailure(value);
         }
 
         internal static float ReadFloat(IMessagePackReader reader)
         {
-            var binary = ReadBytes(reader, 4);
+            Dto.ArraySegment binary = reader.ReadBytes(4);
             byte[] bytes;
             if (BitConverter.IsLittleEndian)
             {
@@ -496,7 +482,7 @@ namespace nanoFramework.MessagePack.Extensions
 
         internal static double ReadDouble(IMessagePackReader reader)
         {
-            var binary = ReadBytes(reader, 8);
+            Dto.ArraySegment binary = reader.ReadBytes(8);
             byte[] bytes;
             if (BitConverter.IsLittleEndian)
             {
@@ -528,11 +514,6 @@ namespace nanoFramework.MessagePack.Extensions
             }
 
             return BitConverter.ToDouble(bytes, 0);
-        }
-
-        private static ArraySegment ReadBytes(IMessagePackReader reader, uint length)
-        {
-            return reader.ReadBytes(length);
         }
     }
 }

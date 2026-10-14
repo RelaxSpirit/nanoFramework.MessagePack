@@ -1,7 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-
+#if NANOFRAMEWORK_1_0
 using System;
+#endif
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using nanoFramework.MessagePack.Stream;
@@ -10,27 +11,44 @@ using nanoFramework.MessagePack.Utility;
 namespace nanoFramework.MessagePack.Converters
 {
     /// <summary>
-    /// Simple array converter
+    /// Simple array converter.
     /// </summary>
     public class SimpleArrayConverter : IConverter
     {
+#nullable enable
         private readonly Type _elementType;
 
         /// <summary>
-        /// Simple array converter
+        /// Initializes a new instance of the SimpleArrayConverter class.
         /// </summary>
-        /// <param name="elementType">Type of array element</param>
+        /// <param name="elementType">Type of array element.</param>
         public SimpleArrayConverter(Type elementType)
         {
             _elementType = elementType;
         }
 
         /// <summary>
-        /// Write array in to MessagePack stream
+        /// Write array in to MessagePack stream.
         /// </summary>
-        /// <param name="value">Array to by write</param>
-        /// <param name="writer">MessagePack stream for written</param>
-        public void Write(Array value, IMessagePackWriter writer)
+        /// <param name="value">Array to by write.</param>
+        /// <param name="writer">MessagePack stream for written.</param>
+        public void Write(Array? value, IMessagePackWriter writer)
+        {
+            Write(value, _elementType, writer);
+        }
+
+        /// <summary>
+        /// Read array from MessagePack stream.
+        /// </summary>
+        /// <param name="reader">MessagePack stream for reading.</param>
+        /// <returns>Read array.</returns>
+        public IList? Read(IMessagePackReader reader)
+        {
+            var length = (int)reader.ReadArrayLength();
+            return length > -1 ? ReadArray(reader, length, _elementType ?? throw ExceptionUtility.ConverterNotFound(typeof(object))) : null;
+        }
+
+        internal static void Write(IList? value, Type? elementType, IMessagePackWriter writer)
         {
             if (value == null)
             {
@@ -38,64 +56,86 @@ namespace nanoFramework.MessagePack.Converters
                 return;
             }
 
-            writer.WriteArrayHeader((uint)value.Length);
-
-            if (value.Length > 0)
+            writer.WriteArrayHeader((uint)value.Count);
+            if (value.Count > 0)
             {
-                var converter = ConverterContext.GetConverter(_elementType) ?? throw ExceptionUtility.NoConverterForCollectionElement(_elementType, "item");
-
-                foreach (var element in value)
+                if (elementType == null)
                 {
-                    converter.Write(element, writer);
+                    Type arrayType = value.GetType();
+                    elementType = arrayType.GetElementType() ?? throw ExceptionUtility.ConverterNotFound(typeof(object));
+                }
+
+                var elementConverter = ConverterContext.GetConverter(elementType);
+                if (elementConverter != null)
+                {
+                    foreach (var element in value)
+                    {
+                        elementConverter.Write(element, writer);
+                    }
+                }
+                else
+                {
+                    foreach (var element in value)
+                    {
+                        ConverterContext.SerializeObject(elementType, element, writer);
+                    }
                 }
             }
         }
 
-        /// <summary>
-        /// Read array from MessagePack stream
-        /// </summary>
-        /// <param name="reader">MessagePack stream for reading</param>
-        /// <returns>Readied array</returns>
-#nullable enable
-        public Array? Read(IMessagePackReader reader)
+        internal static IList? Read(IMessagePackReader reader, Type arrayType)
         {
-            var length = (int)reader.ReadArrayLength();
-
-            return length > -1 ? ReadArray(reader, length) : null;
+            int length = (int)reader.ReadArrayLength();
+            Type? elementType = arrayType.GetElementType();
+#if !NANOFRAMEWORK_1_0
+            if(arrayType.GenericTypeArguments.Length > 0)
+            {
+                elementType = arrayType.GenericTypeArguments[0];
+            }
+#endif
+            return length > 0 ? ReadArray(reader, length, elementType ?? throw ExceptionUtility.ConverterNotFound(typeof(object))) : null;
         }
 
-        private Array ReadArray(IMessagePackReader reader, int length)
+        private static IList ReadArray(IMessagePackReader reader, int length, Type elementType)
         {
-            var converter = ConverterContext.GetConverter(_elementType);
-
-            var result = (IList)Array.CreateInstance(_elementType, length);
-
-            if (converter != null)
+            var targetArray = (IList)Array.CreateInstance(elementType, length);
+            if (elementType.IsArray)
             {
                 for (var i = 0; i < length; i++)
                 {
-                    result[i] = converter.Read(reader)!;
+                    targetArray[i] = Read(reader, elementType);
                 }
             }
             else
             {
-                for (var i = 0; i < length; i++)
+                var converter = ConverterContext.GetConverter(elementType);
+                if (converter != null)
                 {
-                    result[i] = ConverterContext.DeserializeObject(_elementType, reader);
+                    for (var i = 0; i < length; i++)
+                    {
+                        targetArray[i] = converter.Read(reader);
+                    }
+                }
+                else
+                {
+                    for (var i = 0; i < length; i++)
+                    {
+                        targetArray[i] = ConverterContext.DeserializeObject(elementType, reader);
+                    }
                 }
             }
 
-            return (Array)result;
+            return targetArray;
         }
 
         void IConverter.Write(object? value, [NotNull] IMessagePackWriter writer)
         {
-            Write((Array)value!, writer);
+            Write((Array?)value, writer);
         }
 
         object? IConverter.Read([NotNull] IMessagePackReader reader)
         {
-            return Read(reader)!;
+            return Read(reader);
         }
     }
 }

@@ -31,6 +31,7 @@
     <Compile Include="SerializationBenchmarks\ComparativeSerializationBenchmark.cs" />
     <Compile Include="SerializationBenchmarks\ReferenceTypesSerializationBenchmark.cs" />
     <Compile Include="SerializationBenchmarks\ValueTypesSerializationBenchmark.cs" />
+    <Compile Include="TypeCompareBenchmark.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib, Version=1.17.11.0, Culture=neutral, PublicKeyToken=c07d481e9758c731">
@@ -68,10 +69,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\nanoFramework.MessagePack\nanoFramework.MessagePack.nfproj" />
+    <Content Include="packages.lock.json" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="packages.lock.json" />
+    <ProjectReference Include="..\nanoFramework.MessagePack\nanoFramework.MessagePack.nfproj" />
   </ItemGroup>
   <Import Project="$(NanoFrameworkProjectSystemPath)NFProjectSystem.CSharp.targets" Condition="Exists('$(NanoFrameworkProjectSystemPath)NFProjectSystem.CSharp.targets')" />
   <Import Project="..\packages\StyleCop.MSBuild.6.2.0\build\StyleCop.MSBuild.targets" Condition="Exists('..\packages\StyleCop.MSBuild.6.2.0\build\StyleCop.MSBuild.targets')" />

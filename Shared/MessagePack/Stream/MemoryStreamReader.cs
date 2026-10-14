@@ -11,16 +11,18 @@ namespace nanoFramework.MessagePack.Stream
     internal sealed class MemoryStreamReader : BaseReader, IDisposable
     {
         private readonly MemoryStream _stream;
+        private readonly bool _leaveOpen;
         private long _gatheringStartPosition;
 
-        public MemoryStreamReader(MemoryStream stream)
+        public MemoryStreamReader(MemoryStream stream, bool leaveOpen)
         {
             _stream = stream;
+            _leaveOpen = leaveOpen;
         }
 
         public override byte ReadByte()
         {
-            var temp = _stream.ReadByte();
+            int temp = _stream.ReadByte();
             if (temp == -1)
             {
                 throw ExceptionUtility.NotEnoughBytes(0, 1);
@@ -31,7 +33,7 @@ namespace nanoFramework.MessagePack.Stream
 
         public override ArraySegment ReadBytes(uint length)
         {
-            var buffer = ReadBytesInternal(length);
+            byte[] buffer = ReadBytesInternal(length);
             return buffer;
         }
 
@@ -42,13 +44,16 @@ namespace nanoFramework.MessagePack.Stream
 
         public void Dispose()
         {
-            _stream.Dispose();
+            if (!_leaveOpen)
+            {
+                _stream.Dispose();
+            }
         }
 
         private byte[] ReadBytesInternal(uint length)
         {
-            var buffer = new byte[length];
-            var read = _stream.Read(buffer, 0, buffer.Length);
+            byte[] buffer = new byte[length];
+            int read = _stream.Read(buffer, 0, buffer.Length);
             if (read < buffer.Length)
             {
                 throw ExceptionUtility.NotEnoughBytes(read, buffer.Length);
@@ -75,7 +80,6 @@ namespace nanoFramework.MessagePack.Stream
             }
 
             return null;
-            
         }
 
         protected override void StartTokenGathering()

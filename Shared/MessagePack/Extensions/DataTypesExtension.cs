@@ -16,7 +16,7 @@ namespace nanoFramework.MessagePack.Extensions
         {
             StringBuilder sb = new StringBuilder();
 
-            foreach (var item in types)
+            foreach (DataTypes item in types)
             {
                 sb.Append(item);
                 sb.Append(separator);

@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+#if NANOFRAMEWORK_1_0
+using System;
+#endif
 using System.Diagnostics.CodeAnalysis;
 using nanoFramework.MessagePack.Extensions;
 using nanoFramework.MessagePack.Stream;
@@ -10,23 +13,44 @@ namespace nanoFramework.MessagePack.Converters
 {
     internal class ByteConverter : IConverter
     {
-        private static void Write(byte value, IMessagePackWriter writer)
+#nullable enable
+        public void Write(object? value, [NotNull] IMessagePackWriter writer)
         {
-            // positive fixnum
-            if (value < 128L)
+            if (value == null)
             {
-                writer.Write(value);
+#if NANOFRAMEWORK_1_0
+                throw new ArgumentNullException();
+#else
+                throw new ArgumentNullException(nameof(value));
+#endif
+            }
+
+            if (value is byte byteValue)
+            {
+                // positive fixnum
+                if (byteValue < 128L)
+                {
+                    writer.Write(byteValue);
+                }
+                else
+                {
+                    writer.Write(DataTypes.UInt8);
+                    writer.Write(byteValue);
+                }
             }
             else
             {
-                writer.Write(DataTypes.UInt8);
-                value.WriteByteValue(writer);
+#if NANOFRAMEWORK_1_0
+                throw new ArgumentException();
+#else
+                throw new ArgumentException("Value must be of type byte.", nameof(value));
+#endif
             }
         }
 
-        private static byte Read(IMessagePackReader reader)
+        object? IConverter.Read([NotNull] IMessagePackReader reader)
         {
-            var type = reader.ReadDataType();
+            DataTypes type = reader.ReadDataType();
 
             if (NumberConverterHelper.TryGetFixPositiveNumber(type, out byte temp))
             {
@@ -40,21 +64,10 @@ namespace nanoFramework.MessagePack.Converters
 
             return type switch
             {
-                DataTypes.UInt8 => NumberConverterHelper.ReadUInt8(reader),
+                DataTypes.UInt8 => reader.ReadByte(),
                 DataTypes.Int8 => (byte)NumberConverterHelper.ReadInt8(reader),
-                _ => throw ExceptionUtility.IntDeserializationFailure(type),
+                _ => throw ExceptionUtility.BadTypeException(type, DataTypes.PositiveFixNum, DataTypes.NegativeFixNum, DataTypes.UInt8, DataTypes.Int8),
             };
-        }
-
-#nullable enable
-        public void Write(object? value, [NotNull] IMessagePackWriter writer)
-        {
-            Write((byte)value!, writer);
-        }
-
-        object? IConverter.Read([NotNull] IMessagePackReader reader)
-        {
-            return Read(reader);
         }
     }
 }

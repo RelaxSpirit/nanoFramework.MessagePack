@@ -250,40 +250,148 @@ After completing these steps, the serialization/deserialization of the object fo
 
 ## Benchmarks
 
-The measurements were carried out on the developer's local computer in a virtual nanoDevice:
+Comparing data:
+ ```json
+ {
+  "StartDate": "2026-01-27T00:00:00.0000000Z",
+  "WorkingTime": "00:02:00",
+  "TestObjects": [
+    {
+      "UID": "e8048178-b787-4f22-85bc-891b6637d353",
+      "Id": 1
+    },
+    {
+      "UID": "41B07FC4-AE08-4F9B-B9A7-27E8877708D2",
+      "Id": 2
+    }
+  ],
+  "IntArrayData": [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ],
+  "Users": [
+    {
+      "Role": {
+        "Name": "Admin",
+        "Id": 1
+      },
+      "IsActive": true,
+      "Name": "Test"
+    }
+  ],
+  "HashData": {
+    "a": "Test",
+    "b": 123
+  }
+}
+ ```
+
+Size after serialization:
 
  ```text
 ===============================================================
 ==========         Comparative benchmarks data       ==========
 ==========                                           ==========
-========== Json string size:           3957 bytes    ==========
-========== BinaryFormatter array size: 1079 bytes    ==========
-========== MessagePack array size:     2444 bytes    ==========
+========== Json string size:           336 bytes     ==========
+========== MessagePack array size:     197 bytes     ==========
+========== BinaryFormatter array size: 186 bytes     ==========
 ==========                                           ==========
 ===============================================================
-
-Console export: ComparativeDeserializationBenchmark benchmark class.
-
-| ------------------------------------------------------------------------------ |
-| MethodName                          | IterationCount | Mean    | Min   | Max   |
-| ------------------------------------------------------------------------------ |
-| JsonDeserializationBenchmark        | 10             | 27.5 ms | 22 ms | 37 ms |
-| BinaryDeserializationBenchmark      | 10             | 0.1 ms  | 0 ms  | 1 ms  |
-| MessagePackDeserializationBenchmark | 10             | 23.7 ms | 19 ms | 34 ms |
-| ------------------------------------------------------------------------------ |
-
-Console export: ComparativeSerializationBenchmark benchmark class.
-
-
-| ---------------------------------------------------------------------------- |
-| MethodName                        | IterationCount | Mean    | Min   | Max   |
-| ---------------------------------------------------------------------------- |
-| JsonSerializationBenchmark        | 10             | 18.9 ms | 16 ms | 25 ms |
-| BinarySerializationBenchmark      | 10             | 0.1 ms  | 0 ms  | 1 ms  |
-| MessagePackSerializationBenchmark | 10             | 9.8 ms  | 9 ms  | 14 ms |
-| ---------------------------------------------------------------------------- |
 ```
-As it can be seen from the benchmark results above, in what concerns speed and compaction, `MessagePack` performs better than the Json serializer. Comming at no surprise, Binary serialization is the most performant one.
+
+The measurements were carried out on the developer's local computer in a virtual nanoDevice:
+
+ ```text
+********** Starting benchmarks on Virtual nanoDevice **********
+
+| ------------------------------------------------------------------------------- |
+| MethodName                          | IterationCount | Mean    | Min   | Max    |
+| ------------------------------------------------------------------------------- |
+| JsonDeserializationBenchmark        | 5              | 94.8 ms | 83 ms | 112 ms |
+| MessagePackDeserializationBenchmark | 5              | 49.4 ms | 48 ms | 51 ms  |
+| BinaryDeserializationBenchmark      | 5              | 0.4 ms  | 0 ms  | 1 ms   |
+| ------------------------------------------------------------------------------- |
+
+| ------------------------------------------------------------------------------------------ |
+| MethodName                        | IterationCount | Mean                  | Min   | Max   |
+| ------------------------------------------------------------------------------------------ |
+| JsonSerializationBenchmark        | 5              | 57 ms                 | 51 ms | 63 ms |
+| MessagePackSerializationBenchmark | 5              | 41.399999999999997 ms | 40 ms | 44 ms |
+| BinarySerializationBenchmark      | 5              | 0.2 ms                | 0 ms  | 1 ms  |
+| ------------------------------------------------------------------------------------------ |
+********** Completed benchmarks **********
+
+*Remark:
+One iteration is 20 consecutive repetitions!
+```
+
+Measurements taken on the ESP32 WROOM device:
+
+ ```text
+********** Starting benchmarks on ESP32_REV3 **********
+
+| ------------------------------------------------------------------------------- |
+| MethodName                          | IterationCount | Mean   | Min    | Max    |
+| ------------------------------------------------------------------------------- |
+| JsonDeserializationBenchmark        | 5              | 386 ms | 380 ms | 390 ms |
+| MessagePackDeserializationBenchmark | 5              | 188 ms | 180 ms | 190 ms |
+| BinaryDeserializationBenchmark      | 5              | 4 ms   | 0 ms   | 10 ms  |
+| ------------------------------------------------------------------------------- |
+
+| ----------------------------------------------------------------------------- |
+| MethodName                        | IterationCount | Mean   | Min    | Max    |
+| ----------------------------------------------------------------------------- |
+| JsonSerializationBenchmark        | 5              | 226 ms | 220 ms | 230 ms |
+| MessagePackSerializationBenchmark | 5              | 126 ms | 120 ms | 130 ms |
+| BinarySerializationBenchmark      | 5              | 2 ms   | 0 ms   | 10 ms  |
+| ----------------------------------------------------------------------------- |
+********** Completed benchmarks **********
+```
+
+Measurements taken on the XIAO-ESP32-C3 device:
+
+ ```text
+********** Starting benchmarks on XIAO_ESP32C3 **********
+
+| ------------------------------------------------------------------------------- |
+| MethodName                          | IterationCount | Mean   | Min    | Max    |
+| ------------------------------------------------------------------------------- |
+| JsonDeserializationBenchmark        | 5              | 208 ms | 200 ms | 210 ms |
+| MessagePackDeserializationBenchmark | 5              | 98 ms  | 90 ms  | 100 ms |
+| BinaryDeserializationBenchmark      | 5              | 0 ms   | 0 ms   | 0 ms   |
+| ------------------------------------------------------------------------------- |
+
+| ----------------------------------------------------------------------------- |
+| MethodName                        | IterationCount | Mean   | Min    | Max    |
+| ----------------------------------------------------------------------------- |
+| JsonSerializationBenchmark        | 5              | 140 ms | 140 ms | 140 ms |
+| MessagePackSerializationBenchmark | 5              | 80 ms  | 80 ms  | 80 ms  |
+| BinarySerializationBenchmark      | 5              | 0 ms   | 0 ms   | 0 ms   |
+| ----------------------------------------------------------------------------- |
+********** Completed benchmarks **********
+```
+
+Measurements taken on the XIAO-ESP32-C6 device:
+
+ ```text
+********** Starting benchmarks on ESP32_C6_THREAD **********
+
+| ------------------------------------------------------------------------------- |
+| MethodName                          | IterationCount | Mean   | Min    | Max    |
+| ------------------------------------------------------------------------------- |
+| JsonDeserializationBenchmark        | 5              | 112 ms | 110 ms | 120 ms |
+| MessagePackDeserializationBenchmark | 5              | 60 ms  | 60 ms  | 60 ms  |
+| BinaryDeserializationBenchmark      | 5              | 2 ms   | 0 ms   | 10 ms  |
+| ------------------------------------------------------------------------------- |
+
+| -------------------------------------------------------------------------- |
+| MethodName                        | IterationCount | Mean  | Min   | Max   |
+| -------------------------------------------------------------------------- |
+| JsonSerializationBenchmark        | 5              | 68 ms | 60 ms | 70 ms |
+| MessagePackSerializationBenchmark | 5              | 48 ms | 40 ms | 50 ms |
+| BinarySerializationBenchmark      | 5              | 2 ms  | 0 ms  | 10 ms |
+| -------------------------------------------------------------------------- |
+********** Completed benchmarks **********
+```
+
+As it can be seen from the benchmark results above, in what concerns speed and compaction, `MessagePack` performs better than the Json serializer. Coming at no surprise, Binary serialization is the most performant one.
 
 ## Acknowledgements
 

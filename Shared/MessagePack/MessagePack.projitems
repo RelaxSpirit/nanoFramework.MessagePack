@@ -10,7 +10,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)ConverterContext.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Converters\ArrayConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\ArrayListConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\BinaryConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Converters\BoolConverter.cs" />
@@ -38,6 +37,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)DataTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Dto\ArraySegment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Dto\MemberMapping.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Dto\MemberPropertyInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Dto\TypeValueDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Exceptions\ConverterNotFoundException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Exceptions\SerializationException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DataTypesExtension.cs" />

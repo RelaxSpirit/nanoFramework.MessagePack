@@ -14,7 +14,8 @@ namespace nanoFramework.MessagePack.Converters
     {
         private static readonly Encoding Utf8 = new UTF8Encoding();
 
-        private static void Write(string value, IMessagePackWriter writer)
+#nullable enable
+        private static void Write(string? value, IMessagePackWriter writer)
         {
             if (value == null)
             {
@@ -24,12 +25,12 @@ namespace nanoFramework.MessagePack.Converters
             {
                 var data = Utf8.GetBytes(value);
 
-                WriteStringHeaderAndLength(writer, data.Length);
+                WriteStringHeaderAndLength(writer, (uint)data.Length);
 
                 writer.Write(data);
             }
         }
-#nullable enable
+
         private static string? Read(IMessagePackReader reader)
         {
             DataTypes type = reader.ReadDataType();
@@ -39,16 +40,16 @@ namespace nanoFramework.MessagePack.Converters
                 case DataTypes.Null:
                     return null;
                 case DataTypes.Str8:
-                    return ReadString(reader, NumberConverterHelper.ReadUInt8(reader));
+                    return ReadString(reader, reader.ReadByte());
                 case DataTypes.Str16:
                     return ReadString(reader, NumberConverterHelper.ReadUInt16(reader));
                 case DataTypes.Str32:
                     return ReadString(reader, NumberConverterHelper.ReadUInt32(reader));
             }
 
-            if (TryGetFixStrLength(type, out uint length))
+            if (type.GetHighBits(3) == DataTypes.FixStr.GetHighBits(3))
             {
-                return ReadString(reader, length);
+                return ReadString(reader, type - DataTypes.FixStr);
             }
 
             throw ExceptionUtility.BadTypeException(type, DataTypes.FixStr, DataTypes.Str8, DataTypes.Str16, DataTypes.Str32);
@@ -61,13 +62,7 @@ namespace nanoFramework.MessagePack.Converters
             return Utf8.GetString(arraySegment.SourceBuffer, (int)arraySegment.SourceOffset + arraySegment.Position, (int)arraySegment.Length);
         }
 
-        private static bool TryGetFixStrLength(DataTypes type, out uint length)
-        {
-            length = type - DataTypes.FixStr;
-            return type.GetHighBits(3) == DataTypes.FixStr.GetHighBits(3);
-        }
-
-        private static void WriteStringHeaderAndLength(IMessagePackWriter writer, int length)
+        private static void WriteStringHeaderAndLength(IMessagePackWriter writer, uint length)
         {
             if (length <= 31)
             {
@@ -78,7 +73,7 @@ namespace nanoFramework.MessagePack.Converters
             if (length <= byte.MaxValue)
             {
                 writer.Write(DataTypes.Str8);
-                ((byte)length).WriteByteValue(writer);
+                writer.Write((byte)length);
             }
             else if (length <= ushort.MaxValue)
             {
@@ -88,14 +83,13 @@ namespace nanoFramework.MessagePack.Converters
             else
             {
                 writer.Write(DataTypes.Str32);
-                NumberConverterHelper.WriteUIntValue((uint)length, writer);
+                NumberConverterHelper.WriteUIntValue(length, writer);
             }
         }
 
-#nullable enable
         public void Write(object? value, [NotNull] IMessagePackWriter writer)
         {
-            Write((string)value!, writer);
+            Write((string?)value, writer);
         }
 
         object? IConverter.Read([NotNull] IMessagePackReader reader)

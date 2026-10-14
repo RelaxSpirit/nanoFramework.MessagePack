@@ -87,6 +87,7 @@ namespace NFUnitTest
             Assert.IsNotNull(converter);
             converter = ConverterContext.GetConverter(typeof(ushort[]));
             Assert.IsNotNull(converter);
+            converter = ConverterContext.GetConverter(typeof(Hashtable));
 
             Assert.IsNotNull(ConverterContext.NullConverter);
 
@@ -327,6 +328,29 @@ namespace NFUnitTest
                 Assert.AreEqual(testList[i], resultList[i]);
             }
 #endif
+        }
+
+        [TestMethod]
+        public void InheritorClassTest()
+        {
+            TestInheritorClass test = new TestInheritorClass()
+            {
+                Name = nameof(TestInheritorClass),
+                SimpleProperty = true,
+                SimpleField = "SimpleField",
+                BaseField = "Override"
+            };
+
+            var resultBytes = MessagePackSerializer.Serialize(test);
+            Debug.WriteLine($"Serialize byte size: {resultBytes.Length}");
+            var testResult = (TestInheritorClass)MessagePackSerializer.Deserialize(typeof(TestInheritorClass), resultBytes)!;
+
+            Assert.AreEqual(test.Name, testResult.Name);
+            Assert.AreEqual(test.SimpleProperty, testResult.SimpleProperty);
+            Assert.AreEqual(test.VirtualProperty, testResult.VirtualProperty);
+            Assert.AreEqual(-100, testResult.VirtualProperty);
+            Assert.AreEqual(test.SimpleField, testResult.SimpleField);
+            Assert.AreEqual(test.BaseField, testResult.BaseField);
         }
     }
 }

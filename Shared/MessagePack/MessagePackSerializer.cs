@@ -59,10 +59,11 @@ namespace nanoFramework.MessagePack
         /// </summary>
         /// <param name="type">Target object type.</param>
         /// <param name="stream">MessagePack data stream.</param>
+        /// <param name="leaveOpen">If <see langword="true"/>, the stream will not be disposed after deserialization, default value is <see langword="false"/>.</param>
         /// <returns>An instance of an target object after deserialization or <see langword="null"/>.</returns>
-        public static object? Deserialize(Type type, MemoryStream stream)
+        public static object? Deserialize(Type type, MemoryStream stream, bool leaveOpen = false)
         {
-            using (var reader = new MemoryStreamReader(stream))
+            using (var reader = new MemoryStreamReader(stream, leaveOpen))
             {
                 return Deserialize(type, reader);
             }
@@ -70,7 +71,7 @@ namespace nanoFramework.MessagePack
 
         private static object? Deserialize(Type type, IMessagePackReader reader)
         {
-            var converter = ConverterContext.GetConverter(type);
+            Converters.IConverter? converter = ConverterContext.GetConverter(type);
             if (converter != null)
             {
                 return converter.Read(reader);
@@ -83,9 +84,9 @@ namespace nanoFramework.MessagePack
 
         private static void Serialize(object data, IMessagePackWriter writer)
         {
-            var type = data.GetType();
+            Type type = data.GetType();
 
-            var converter = ConverterContext.GetConverter(type);
+            Converters.IConverter? converter = ConverterContext.GetConverter(type);
 
             if (converter != null)
             {

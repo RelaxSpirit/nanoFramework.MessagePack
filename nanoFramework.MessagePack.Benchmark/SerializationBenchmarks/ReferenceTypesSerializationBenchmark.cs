@@ -1,24 +1,19 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using nanoFramework.Benchmark;
+using nanoFramework.Benchmark.Attributes;
+using nanoFramework.MessagePack.Benchmark.Base;
+using nanoFramework.MessagePack.Benchmark.Data;
+
 namespace nanoFramework.MessagePack.Benchmark.SerializationBenchmarks
 {
-    using nanoFramework.Benchmark;
-    using nanoFramework.Benchmark.Attributes;
-    using nanoFramework.MessagePack.Benchmark.Base;
-    using nanoFramework.MessagePack.Benchmark.Data;
-
     /// <summary>
     /// Reference types serialization benchmark.
     /// </summary>
     [IterationCount(5)]
     public class ReferenceTypesSerializationBenchmark : BaseIterationBenchmark
     {
-        /// <summary>
-        /// public iteration count.
-        /// </summary>
-        protected override int _iterationCount => 20;
-
         /// <summary>
         /// Serialization <see cref="ReferenceTestObjects.IntArray"/> benchmark.
         /// </summary>

@@ -3,30 +3,37 @@
 
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using nanoFramework.MessagePack.Dto;
 using nanoFramework.MessagePack.Stream;
+using nanoFramework.MessagePack.Utility;
 
 namespace nanoFramework.MessagePack.Extensions
 {
     internal static class ObjectTokenHelper
     {
 #nullable enable
-        internal static Hashtable GetMassagePackObjectTokens([NotNull] this IMessagePackReader reader)
+        internal static Hashtable? GetMessagePackObjectTokens([NotNull] this IMessagePackReader reader)
         {
-            var length = reader.ReadMapLength();
-            return reader.ReadMap(length);
+            int length = (int)reader.ReadMapLength();
+            return length > 0 ? reader.ReadMap(length) : null;
         }
 
-        private static Hashtable ReadMap(this IMessagePackReader reader, uint length)
+        private static Hashtable ReadMap(this IMessagePackReader reader, int length)
         {
-            var map = new Hashtable();
+            var map = new Hashtable(length);
 
-            var stringConverter = ConverterContext.GetConverter(typeof(string));
-            for (var i = 0; i < length; i++)
+            while (length-- > 0)
             {
-                var key = stringConverter.Read(reader);
-                var value = reader.ReadToken();
+                if (ConverterContext.StringConverter.Read(reader) is string key && key != null)
+                {
+                    ArraySegment? value = reader.ReadToken();
 
-                map[key!] = value;
+                    map[key] = value;
+                }
+                else
+                {
+                    throw ExceptionUtility.BadTypeException(DataTypes.Null, DataTypes.FixStr);
+                }
             }
 
             return map;

@@ -199,7 +199,7 @@ namespace UnitTestShared.Helpers
             StringBuilder sb = new();
             foreach (long b in objects)
             {
-                sb.Append(b.ToString());
+                sb.Append(b);
                 sb.Append(joinString);
             }
             if (sb.Length > 0)

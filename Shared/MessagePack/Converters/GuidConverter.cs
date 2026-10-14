@@ -1,33 +1,50 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+#if NANOFRAMEWORK_1_0
 using System;
+#endif
 using System.Diagnostics.CodeAnalysis;
 using nanoFramework.MessagePack.Stream;
+using nanoFramework.MessagePack.Utility;
 
 namespace nanoFramework.MessagePack.Converters
 {
     internal class GuidConverter : IConverter
     {
-        private static Guid Read([NotNull] IMessagePackReader reader)
-        {
-            return new Guid((byte[])ConverterContext.GetConverter(typeof(byte[])).Read(reader)!);
-        }
-
-        private static void Write(Guid value, [NotNull] IMessagePackWriter writer)
-        {
-            ConverterContext.GetConverter(typeof(byte[])).Write(value.ToByteArray(), writer);
-        }
-
 #nullable enable
         public void Write(object? value, [NotNull] IMessagePackWriter writer)
         {
-            Write((Guid)value!, writer);
+            if (value == null)
+            {
+#if NANOFRAMEWORK_1_0
+                throw new ArgumentNullException();
+#else
+                throw new ArgumentNullException(nameof(value));
+#endif
+            }
+            if (value is Guid guidValue)
+            {
+                ConverterContext.BinaryConverter.Write(guidValue.ToByteArray(), writer);
+            }
+            else
+            {
+#if NANOFRAMEWORK_1_0
+                throw new ArgumentException();
+#else
+                throw new ArgumentException("Value must be of type Guid.", nameof(value));
+#endif
+            }
         }
 
         object? IConverter.Read([NotNull] IMessagePackReader reader)
         {
-            return Read(reader);
+            if (ConverterContext.BinaryConverter.Read(reader) is byte[] byteArray)
+            {
+                return new Guid(byteArray);
+            }
+            
+            throw ExceptionUtility.BadTypeException(DataTypes.Null, DataTypes.Bin8);
         }
     }
 }

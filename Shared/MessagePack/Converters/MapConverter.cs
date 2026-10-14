@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+#if NANOFRAMEWORK_1_0
+using System;
+#endif
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using nanoFramework.MessagePack.Stream;
@@ -9,7 +12,8 @@ namespace nanoFramework.MessagePack.Converters
 {
     internal class MapConverter : IConverter
     {
-        private static void Write(IDictionary value, IMessagePackWriter writer)
+#nullable enable
+        internal static void Write(IDictionary? value, IMessagePackWriter writer)
         {
             if (value == null)
             {
@@ -19,10 +23,21 @@ namespace nanoFramework.MessagePack.Converters
 
             writer.WriteMapHeader((uint)value.Count);
 
+            Type? preKeyType = null;
+            IConverter? keyConverter = null;
+
+            Type? preValueType = null;
+            IConverter? valueConverter = null;
+
             foreach (DictionaryEntry element in value)
             {
-                var keyType = element.Key.GetType();
-                var keyConverter = ConverterContext.GetConverter(keyType);
+                Type keyType = element.Key.GetType();
+                if (keyType != preKeyType)
+                {
+                    keyConverter = ConverterContext.GetConverter(keyType);
+                    preKeyType = keyType;
+                }
+
                 if (keyConverter == null)
                 {
                     ConverterContext.SerializeObject(keyType, element.Key, writer);
@@ -39,7 +54,12 @@ namespace nanoFramework.MessagePack.Converters
                 else
                 {
                     var valueType = element.Value.GetType();
-                    var valueConverter = ConverterContext.GetConverter(valueType);
+                    if (valueType != preValueType)
+                    {
+                        valueConverter = ConverterContext.GetConverter(valueType);
+                        preValueType = valueType;
+                    }
+
                     if (valueConverter == null)
                     {
                         ConverterContext.SerializeObject(valueType, element.Value, writer);
@@ -52,23 +72,36 @@ namespace nanoFramework.MessagePack.Converters
             }
         }
 
-#nullable enable
         internal static Hashtable? Read(IMessagePackReader reader)
         {
-            var length = reader.ReadMapLength();
-            return ((long)length) > -1 ? ReadMap(reader, length) : null;
+            int length = (int)reader.ReadMapLength();
+            return length > -1 ? ReadMap(reader, length) : null;
         }
 
-        internal static Hashtable ReadMap(IMessagePackReader reader, uint length)
+        internal static Hashtable ReadMap(IMessagePackReader reader, int length)
         {
-            var map = new Hashtable();
-
-            for (var i = 0; i < length; i++)
+            if (length < 0)
             {
-                var key = ConverterContext.GetObjectByDataType(reader);
+#if NANOFRAMEWORK_1_0
+                throw new ArgumentOutOfRangeException();
+#else
+                throw new ArgumentOutOfRangeException(nameof(length), "Map length cannot be negative.");
+#endif
+            }
+
+            var map = new Hashtable(length);
+
+            while (length-- > 0)
+            {
+                var key = ConverterContext.GetObjectByDataType(reader) ??
+#if NANOFRAMEWORK_1_0
+                throw new InvalidOperationException();
+#else
+                throw new InvalidOperationException("Map key cannot be null.");
+#endif
                 var value = ConverterContext.GetObjectByDataType(reader);
 
-                map[key!] = value;
+                map[key] = value;
             }
 
             return map;
@@ -101,7 +134,7 @@ namespace nanoFramework.MessagePack.Converters
 
         public void Write(object? value, [NotNull] IMessagePackWriter writer)
         {
-            Write((IDictionary)value!, writer);
+            Write((Hashtable?)value, writer);
         }
 
         object? IConverter.Read([NotNull] IMessagePackReader reader)

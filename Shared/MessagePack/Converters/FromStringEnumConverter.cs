@@ -53,7 +53,7 @@ namespace nanoFramework.MessagePack.Converters
 
         public virtual object? Read([NotNull] IMessagePackReader reader)
         {
-            var enumString = (string)ConverterContext.GetConverter(typeof(string)).Read(reader)!;
+            var enumString = (string)(ConverterContext.StringConverter.Read(reader) ?? throw new NullReferenceException());
 
             return Enum.Parse(_enumType, enumString, true);
         }
@@ -66,7 +66,7 @@ namespace nanoFramework.MessagePack.Converters
             }
             else
             {
-                var valueType = value.GetType();
+                Type valueType = value.GetType();
 
                 if (!valueType.IsEnum)
                     throw new ArgumentException($"Value is type {valueType} and it is not Enum type.", nameof(value));
@@ -74,7 +74,7 @@ namespace nanoFramework.MessagePack.Converters
                 if(valueType.FullName != _enumType.FullName)
                     throw new ArgumentException($"Value is type {valueType} is not equal current converter type {_enumType}.", nameof(value));
 
-                ConverterContext.GetConverter(typeof(string)).Write(value.ToString(), writer);
+                ConverterContext.StringConverter.Write(value.ToString(), writer);
             }
         }
     }

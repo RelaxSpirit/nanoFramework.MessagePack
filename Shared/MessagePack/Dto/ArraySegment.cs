@@ -143,7 +143,7 @@ namespace nanoFramework.MessagePack.Dto
         {
             var data = new byte[_length];
 
-            System.Array.Copy(_buffer, (int)_offset, data, 0, (int)_length);
+            Array.Copy(_buffer, (int)_offset, data, 0, (int)_length);
             return data;
         }
 
@@ -180,8 +180,8 @@ namespace nanoFramework.MessagePack.Dto
         /// </summary>
         public class ArraySegmentEnumerator : IEnumerator
         {
-            private int _position = -1;
             private readonly ArraySegment _arraySegment;
+            private int _position = -1;
 
             internal ArraySegmentEnumerator(ArraySegment arraySegment)
             {

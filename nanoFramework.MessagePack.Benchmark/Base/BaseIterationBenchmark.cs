@@ -1,19 +1,25 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+
 namespace nanoFramework.MessagePack.Benchmark.Base
 {
-    using System;
-
     /// <summary>
     /// Base benchmark class.
     /// </summary>
     public abstract class BaseIterationBenchmark
     {
-        /// <summary>
-        /// Internal iteration count.
-        /// </summary>
-        protected virtual int _iterationCount => 20;
+        private const int VirtualDeviceIterationCount = 20;
+        private const int PhysicalDeviceIterationCount = 1;
+        private const string VirtualDeviceName = "Virtual nanoDevice";
+
+        private static readonly int DefaultIterationCount;
+
+        static BaseIterationBenchmark()
+        {
+             DefaultIterationCount = VirtualDeviceName == Runtime.Native.SystemInfo.TargetName ? VirtualDeviceIterationCount : PhysicalDeviceIterationCount;
+        }
 
         /// <summary>
         /// Call iteration benchmark method.
@@ -29,7 +35,7 @@ namespace nanoFramework.MessagePack.Benchmark.Base
             else
             {
                 int step = 0;
-                while (step++ < _iterationCount)
+                while (step++ < DefaultIterationCount)
                 {
                     methodToRun();
                 }

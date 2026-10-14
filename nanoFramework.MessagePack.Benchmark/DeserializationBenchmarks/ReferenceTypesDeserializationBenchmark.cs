@@ -1,14 +1,14 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections;
+using nanoFramework.Benchmark;
+using nanoFramework.Benchmark.Attributes;
+using nanoFramework.MessagePack.Benchmark.Base;
+using nanoFramework.MessagePack.Benchmark.Data;
+
 namespace nanoFramework.MessagePack.Benchmark.DeserializationBenchmarks
 {
-    using System.Collections;
-    using nanoFramework.Benchmark;
-    using nanoFramework.Benchmark.Attributes;
-    using nanoFramework.MessagePack.Benchmark.Base;
-    using nanoFramework.MessagePack.Benchmark.Data;
-
     /// <summary>
     /// Reference types deserialization benchmark.
     /// </summary>
@@ -34,11 +34,6 @@ namespace nanoFramework.MessagePack.Benchmark.DeserializationBenchmarks
         /// Bytes hashtable array for test.
         /// </summary>
         private byte[] testHashtableBytes;
-
-        /// <summary>
-        /// public iteration count.
-        /// </summary>
-        protected override int _iterationCount => 20;
 
         /// <summary>
         /// Initialize all test data objects.

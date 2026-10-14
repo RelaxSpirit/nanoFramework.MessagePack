@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+#if NANOFRAMEWORK_1_0
+using System;
+#endif
 using System.Diagnostics.CodeAnalysis;
 using nanoFramework.MessagePack.Extensions;
 using nanoFramework.MessagePack.Stream;
@@ -10,14 +13,35 @@ namespace nanoFramework.MessagePack.Converters
 {
     internal class SbyteConverter : IConverter
     {
-        private static void Write(sbyte value, IMessagePackWriter writer)
+#nullable enable
+        public void Write(object? value, [NotNull] IMessagePackWriter writer)
         {
-            NumberConverterHelper.WriteInteger(value, writer);
+            if (value is null)
+            {
+#if NANOFRAMEWORK_1_0
+                throw new ArgumentNullException();
+#else
+                throw new ArgumentNullException(nameof(value));
+#endif
+            }
+
+            if (value is sbyte sbyteValue)
+            {
+                NumberConverterHelper.WriteInteger(sbyteValue, writer);
+            }
+            else
+            {
+#if NANOFRAMEWORK_1_0
+                throw new ArgumentException();
+#else
+                throw new ArgumentException("Value must be of type sbyte.", nameof(value));
+#endif
+            }
         }
 
-        private static sbyte Read(IMessagePackReader reader)
+        object IConverter.Read([NotNull] IMessagePackReader reader)
         {
-            var type = reader.ReadDataType();
+            DataTypes type = reader.ReadDataType();
 
             if (NumberConverterHelper.TryGetFixPositiveNumber(type, out byte temp))
             {
@@ -34,18 +58,7 @@ namespace nanoFramework.MessagePack.Converters
                 return NumberConverterHelper.ReadInt8(reader);
             }
 
-            throw ExceptionUtility.IntDeserializationFailure(type);
-        }
-
-#nullable enable
-        public void Write(object? value, [NotNull] IMessagePackWriter writer)
-        {
-            Write((sbyte)value!, writer);
-        }
-
-        object IConverter.Read([NotNull] IMessagePackReader reader)
-        {
-            return Read(reader);
+            throw ExceptionUtility.BadTypeException(type, DataTypes.PositiveFixNum, DataTypes.NegativeFixNum, DataTypes.Int8);
         }
     }
 }

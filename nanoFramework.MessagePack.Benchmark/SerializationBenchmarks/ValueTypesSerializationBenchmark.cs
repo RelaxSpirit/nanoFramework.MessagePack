@@ -1,13 +1,13 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+using nanoFramework.Benchmark;
+using nanoFramework.Benchmark.Attributes;
+using nanoFramework.MessagePack.Benchmark.Base;
+
 namespace nanoFramework.MessagePack.Benchmark.SerializationBenchmarks
 {
-    using System;
-    using nanoFramework.Benchmark;
-    using nanoFramework.Benchmark.Attributes;
-    using nanoFramework.MessagePack.Benchmark.Base;
-
     /// <summary>
     /// Value types serialization benchmark
     /// </summary>
@@ -28,11 +28,6 @@ namespace nanoFramework.MessagePack.Benchmark.SerializationBenchmarks
         /// Test <see cref="string"/>
         /// </summary>
         private readonly string _testString = "Benchmark test";
-
-        /// <summary>
-        /// public iteration count.
-        /// </summary>
-        protected override int _iterationCount => 20;
 
         /// <summary>
         /// Serialization <see cref="Guid"/> benchmark.

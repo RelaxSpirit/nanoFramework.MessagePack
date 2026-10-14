@@ -1,7 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+#if NANOFRAMEWORK_1_0
 using System;
+#endif
 using System.Collections;
 using System.Reflection;
 using nanoFramework.MessagePack.Dto;
@@ -10,17 +12,11 @@ namespace nanoFramework.MessagePack.Utility
 {
     internal static class FieldUtility
     {
-#nullable enable
         public static void Map(Type targetType, ArrayList mappings)
         {
-            var fields = GetFields(targetType);
+            FieldInfo[] fields = GetFields(targetType);
 
-            if (fields == null || fields.Length == 0)
-            {
-                return;
-            }
-
-            foreach (var field in fields)
+            foreach (FieldInfo field in fields)
             {
                 mappings.Add(new MemberMapping(field));
             }
@@ -35,16 +31,11 @@ namespace nanoFramework.MessagePack.Utility
             return (FieldInfo[])list.ToArray(typeof(FieldInfo));
         }
 
-        private static void GetFields(Type? type, ArrayList list)
+        private static void GetFields(Type type, ArrayList list)
         {
-            if (type == null)
-            {
-                return;
-            }
+            FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
 
-            var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
-
-            foreach (var field in fields)
+            foreach (FieldInfo field in fields)
             {
                 if (field.DeclaringType == type)
                 {
@@ -52,7 +43,10 @@ namespace nanoFramework.MessagePack.Utility
                 }
             }
 
-            GetFields(type.BaseType, list);
+            if (type.BaseType != null)
+            {
+                GetFields(type.BaseType, list);
+            }
         }
     }
 }

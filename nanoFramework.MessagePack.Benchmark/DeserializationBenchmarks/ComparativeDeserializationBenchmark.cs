@@ -1,27 +1,22 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Runtime.Serialization.Formatters.Binary;
+using nanoFramework.Benchmark;
+using nanoFramework.Benchmark.Attributes;
+using nanoFramework.Json;
+using nanoFramework.MessagePack.Benchmark.Base;
+using nanoFramework.MessagePack.Benchmark.Data;
+using static nanoFramework.MessagePack.Benchmark.Data.ComparativeTestObjects;
+
 namespace nanoFramework.MessagePack.Benchmark.DeserializationBenchmarks
 {
-    using System.Runtime.Serialization.Formatters.Binary;
-    using nanoFramework.Benchmark;
-    using nanoFramework.Benchmark.Attributes;
-    using nanoFramework.Json;
-    using nanoFramework.MessagePack.Benchmark.Base;
-    using nanoFramework.MessagePack.Benchmark.Data;
-    using static nanoFramework.MessagePack.Benchmark.Data.ComparativeTestObjects;
-
     /// <summary>
     /// Comparative deserialization benchmark.
     /// </summary>
-    [IterationCount(10)]
+    [IterationCount(5)]
     public class ComparativeDeserializationBenchmark : BaseIterationBenchmark
     {
-        /// <summary>
-        /// public iteration count.
-        /// </summary>
-        protected override int _iterationCount => 1;
-
         /// <summary>
         /// Deserialization json benchmark.
         /// </summary>
@@ -30,19 +25,7 @@ namespace nanoFramework.MessagePack.Benchmark.DeserializationBenchmarks
         {
             RunInIteration(() =>
             {
-                JsonConvert.DeserializeObject(TestJson, typeof(TestObjectClass), ComparativeTestObjects.JsonSerializerOptions);
-            });
-        }
-
-        /// <summary>
-        /// Deserialization <see cref="BinaryFormatter"/> binary array benchmark.
-        /// </summary>
-        [Benchmark]
-        public void BinaryDeserializationBenchmark()
-        {
-            RunInIteration(() =>
-            {
-                BinaryFormatter.Deserialize(TestObjectBinaryBytes);
+                _ = JsonConvert.DeserializeObject(TestJson, typeof(ComparativeBenchmarkObject), ComparativeTestObjects.JsonSerializerOptions);
             });
         }
 
@@ -54,7 +37,19 @@ namespace nanoFramework.MessagePack.Benchmark.DeserializationBenchmarks
         {
             RunInIteration(() =>
             {
-                MessagePackSerializer.Deserialize(typeof(TestObjectClass), TestObjectMsgPackBytes);
+                _ = MessagePackSerializer.Deserialize(typeof(ComparativeBenchmarkObject), TestObjectMsgPackBytes);
+            });
+        }
+
+        /// <summary>
+        /// Deserialization <see cref="BinaryFormatter"/> binary array benchmark.
+        /// </summary>
+        [Benchmark]
+        public void BinaryDeserializationBenchmark()
+        {
+            RunInIteration(() =>
+            {
+                _ = BinaryFormatter.Deserialize(TestObjectBinaryBytes);
             });
         }
     }
